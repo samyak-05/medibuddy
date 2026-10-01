@@ -1,0 +1,217 @@
+activities:
+  dog_walk:
+    description: walking or taking a dog or other pet outside
+    keywords: [dog, pet, puppy]
+  cycling:
+    description: riding a bicycle or a two-wheeler (scooter, motorbike), including commuting on one
+    keywords: [cycle, cycling, bike, bicycle, scooter, scooty, motorbike, two-wheeler, two wheeler, ride]
+  running:
+    description: running, jogging, walking for exercise, outdoor workouts, playing sports outside
+    keywords: [run, running, jog, jogging, walk, workout, exercise, cricket, football]
+  hiking:
+    description: hiking, trekking, nature trails, climbing hills
+    keywords: [hike, hiking, trek, trekking, trail]
+  picnic:
+    description: picnic, outdoor meal, sitting in a park or garden for leisure, outdoor party
+    keywords: [picnic, barbecue, bbq, lawn, outdoor lunch, outdoor party]
+  travel:
+    description: commuting or travelling by car, bus, train, cab, or a flight
+    keywords: [travel, drive, driving, commute, bus, train, flight, cab, road trip, airport]
+  park_visit:
+    description: going to a park or playground, general time spent outdoors
+    keywords: [park, playground, outside, outdoors, garden]
+
+groups:
+  children:
+    description: kids, toddlers, babies, school children
+    keywords: [kid, kids, child, children, son, daughter, toddler, baby]
+  elderly:
+    description: older adults, grandparents, seniors
+    keywords: [grandma, grandpa, grandmother, grandfather, elderly, old, parents, senior, nani, dadi]
+  pets:
+    description: dogs, cats or other animals
+    keywords: [dog, pet, puppy, cat]
+
+# ID prefixes: GEN = general situational, EX = outdoor exercise, TW = two-wheeler, TR = travel, VG = vulnerable groups, LE = leisure
+
+sops:
+  - id: GEN-01
+    title: Organised heavy rain over the location
+    category: situational
+    severity: danger
+    scope: all          # applies to every activity
+    lead: true          # always shown first
+    when:
+      any:
+        - {metric: rain_24h, op: ">=", value: 64.5}
+        - all:
+            - {metric: rain_24h, op: ">=", value: 35}
+            - {metric: precip_prob_max, op: ">=", value: 80}
+        - all:
+            - {metric: rain_window, op: ">=", value: 15}
+            - {metric: wind_gust_max, op: ">=", value: 45}
+    advice: >
+      A sustained heavy-rain pattern is forecast for this location. Treat any
+      outdoor plan as high risk: expect waterlogged roads, poor visibility and
+      sudden downpours. Postpone non-essential outdoor activity and check the
+      latest IMD district warning before stepping out.
+
+  - id: GEN-02
+    title: Thunderstorm in the forecast window
+    category: situational
+    severity: danger
+    scope: all
+    lead: true
+    when:
+      all:
+        - {metric: thunder_hours, op: ">=", value: 1}
+    advice: >
+      Thunderstorms are forecast during this window. Do not stay in open
+      ground, under isolated trees or on water. Plan to be indoors for the
+      hours the storm is expected.
+
+  - id: EX-01
+    title: Heat stress during exercise
+    category: outdoor_exercise
+    severity: warning
+    activities: [running, cycling, hiking]
+    when:
+      all:
+        - {metric: feels_like_max, op: ">=", value: 40}
+    advice: >
+      Feels-like temperature is in the heat-stress range. Avoid strenuous
+      exercise in this window; if you must go, keep it short, carry water and
+      stop at the first sign of dizziness or cramps.
+
+  - id: EX-02
+    title: Very high UV during outdoor activity
+    category: outdoor_exercise
+    severity: advisory
+    activities: [running, cycling, hiking, picnic, park_visit]
+    when:
+      all:
+        - {metric: uv_max, op: ">=", value: 8}
+    advice: >
+      UV is very high. Avoid unprotected exposure between 11am and 4pm; use
+      SPF 30+ sunscreen and a cap, or move the activity to early morning or
+      after 5pm.
+
+  - id: EX-03
+    title: No adverse signals for exercise
+    category: outdoor_exercise
+    severity: info
+    all_clear: true     # dropped automatically if anything stronger matches
+    activities: [running, cycling, hiking]
+    when:
+      all:
+        - {metric: precip_prob_max, op: "<", value: 40}
+        - {metric: wind_gust_max, op: "<", value: 30}
+        - {metric: feels_like_max, op: "<", value: 35}
+        - {metric: thunder_hours, op: "==", value: 0}
+    advice: >
+      None of our risk thresholds are crossed for this window. Normal
+      precautions apply: water, visibility gear if it's dark.
+
+  - id: TW-01
+    title: Strong gusts on a two-wheeler
+    category: two_wheeler
+    severity: warning
+    activities: [cycling]
+    when:
+      any:
+        - {metric: wind_gust_max, op: ">=", value: 40}
+        - {metric: wind_max, op: ">=", value: 30}
+    advice: >
+      Gusts at this level can push a cycle or scooter sideways, especially on
+      flyovers and open stretches. Treat this as a safety risk, not a comfort
+      issue: take a car, bus or metro if you can.
+
+  - id: TR-01
+    title: Heavy rain during travel
+    category: travel
+    severity: warning
+    activities: [travel]
+    when:
+      all:
+        - {metric: rain_window, op: ">=", value: 20}
+    advice: >
+      Heavy rain is forecast for your travel window. Low-lying roads and
+      underpasses may flood. Postpone if the trip is not essential; otherwise
+      avoid known waterlogging spots and do not drive through standing water.
+
+  - id: VG-01
+    title: Heat with young children outdoors
+    category: vulnerable_groups
+    severity: warning
+    scope: all
+    groups: [children]
+    when:
+      all:
+        - {metric: feels_like_max, op: ">=", value: 35}
+    advice: >
+      Children heat up faster than adults. Keep outdoor time short, stay in
+      shade, and make them drink water every 20 minutes even if they don't ask.
+
+  - id: VG-02
+    title: Temperature extremes for elderly people
+    category: vulnerable_groups
+    severity: warning
+    scope: all
+    groups: [elderly]
+    when:
+      any:
+        - {metric: feels_like_max, op: ">=", value: 37}
+        - {metric: feels_like_min, op: "<=", value: 8}
+    advice: >
+      Older adults are more vulnerable at this temperature. Prefer indoor
+      plans, keep the outing short, and make sure they carry water (in heat)
+      or warm layers (in cold).
+
+  - id: VG-03
+    title: Hot ground for pets
+    category: vulnerable_groups
+    severity: advisory
+    activities: [dog_walk]
+    when:
+      all:
+        - {metric: temp_max, op: ">=", value: 33}
+    advice: >
+      Pavement gets much hotter than the air and can burn paws. Walk on grass
+      or shaded paths, and shift walks to early morning or after sunset.
+
+  - id: LE-01
+    title: Good conditions for a picnic
+    category: leisure
+    severity: info
+    all_clear: true
+    activities: [picnic]
+    when:
+      score:
+        min: 6
+        of:
+          - {metric: precip_prob_max, op: "<", value: 30, weight: 3}
+          - {metric: feels_like_max, op: between, value: [18, 33], weight: 2}
+          - {metric: wind_max, op: "<", value: 20, weight: 1}
+          - {metric: uv_max, op: "<", value: 8, weight: 1}
+          - {metric: cloud_cover_mean, op: between, value: [10, 70], weight: 1}
+    advice: >
+      Conditions look pleasant for a picnic: low rain chance and comfortable
+      temperatures. Pick a shaded spot and carry water.
+
+  - id: LE-02
+    title: Poor conditions for a picnic
+    category: leisure
+    severity: advisory
+    activities: [picnic]
+    when:
+      score:
+        max: 5
+        of:
+          - {metric: precip_prob_max, op: "<", value: 30, weight: 3}
+          - {metric: feels_like_max, op: between, value: [18, 33], weight: 2}
+          - {metric: wind_max, op: "<", value: 20, weight: 1}
+          - {metric: uv_max, op: "<", value: 8, weight: 1}
+          - {metric: cloud_cover_mean, op: between, value: [10, 70], weight: 1}
+    advice: >
+      This isn't a good window for a picnic: several comfort factors are off
+      at once. Consider a covered venue or a different time.
