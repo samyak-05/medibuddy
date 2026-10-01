@@ -1,0 +1,8 @@
+langgraph
+langchain-core
+langchain-groq
+pydantic
+PyYAML
+requests
+python-dotenv
+streamlit
