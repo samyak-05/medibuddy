@@ -1,4 +1,3 @@
-from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -53,7 +52,7 @@ class WeatherSnapshot:
     metrics: dict[str, float]
     observed_at: str
     note: str = ""
-    hours: list[dict] = field(defualt_factory=list)
+    hours: list[dict] = field(default_factory=list)
 
 class OpenMeteo:
     def __init__(self, timeout: float = 8.0, cache_ttl: int = 600):
