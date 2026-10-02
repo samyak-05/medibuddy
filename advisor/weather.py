@@ -68,11 +68,14 @@ class OpenMeteo:
         except (requests.RequestException, ValueError) as e:
             raise WeatherError(f"weather service unreachable ({type(e).__name__})") from e
 
-    def geocode(self, name: str) -> Place:
-        data = self._get(GEOCODE_URL, {"name": name, "count": 5, "language": "en", "format": "json"})
+    def geocode(self, name: str, country: str | None = None) -> Place:
+        data = self._get(GEOCODE_URL, {"name": name, "count": 10, "language": "en", "format": "json"})
         results = data.get("results") or []
+        if country:
+            results = [r for r in results if r.get("country", "").lower() == country.lower()]
         if not results:
-            raise WeatherError(f"could not find a place called '{name}'")
+            where = f" in {country}" if country else ""
+            raise WeatherError(f"could not find a place called '{name}'{where}")
         top = results[0]
         return Place(top["name"], top.get("country", ""), top["latitude"], top["longitude"], len(results))
 
