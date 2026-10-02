@@ -1,3 +1,5 @@
+version : 1
+
 activities:
   dog_walk:
     description: walking or taking a dog or other pet outside
@@ -69,6 +71,19 @@ sops:
       Thunderstorms are forecast during this window. Do not stay in open
       ground, under isolated trees or on water. Plan to be indoors for the
       hours the storm is expected.
+  
+  - id: GEN-03
+    title: Heat stress for anyone outdoors
+    category: situational
+    severity: warning
+    scope: all          # any outdoor plan, even one we have no specific rule for
+    when:
+      all:
+        - {metric: feels_like_max, op: ">=", value: 40}
+    advice: >
+      Feels-like temperature is in the heat-stress range. Limit time in the
+      open, stay in shade, drink water regularly and avoid strenuous effort.
+      Stop and cool down at the first sign of dizziness, headache or cramps.
 
   - id: EX-01
     title: Heat stress during exercise
