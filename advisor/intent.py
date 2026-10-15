@@ -55,6 +55,11 @@ Return ONLY a JSON object with these keys:
              (e.g. "what about this evening instead?", "and tomorrow?",
              or a correction like "I meant the one in Nepal").
 
+Fill activity and groups ONLY from words in THIS message. Never copy them
+from the previous turn context. If this message names different people or a
+different activity (e.g. "with my friends"), it is a new question, not a
+follow-up.
+
 ACTIVITIES:
 {activities}
 
@@ -78,7 +83,7 @@ def llm_parse(llm: LLM, policy: Policy, text: str, memory: dict) -> Intent:
         windows=", ".join(WINDOWS),
         now_hint=memory.get("observed_at", "unknown"),
     )
-    prev = {k: memory.get(k) for k in ("location", "country", "activity", "groups", "window") if memory.get(k)}
+    prev = {k: memory.get(k) for k in ("location", "country") if memory.get(k)}
     user = f"Previous turn context: {json.dumps(prev) if prev else 'none'}\n\nUser message:\n<<<\n{text}\n>>>"
     raw = parse_json(llm.complete(system, user))
     return _validated(raw, policy, parser="llm")
