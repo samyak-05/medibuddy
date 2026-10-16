@@ -13,7 +13,6 @@ from advisor.sop_store import Policy, load_policy
 from advisor.weather import (OpenMeteo, Place, WeatherError, build_snapshot,
                              snapshot_from_dict, snapshot_to_dict)
 
-
 class State(TypedDict, total=False):
     message: str
     memory: dict
@@ -146,7 +145,7 @@ def build(policy: Policy | None = None, llm: LLM | None = None, weather=None, ch
                  f"I won't guess at the conditions, so I can't give safety advice for this one. "
                  f"Please try again in a few minutes, or check the spelling of the place.")
         return {"reply": reply, "outcome": "no_forecast", "path": step(state, "cant_forecast")}
-
+    
     def remember(state: State):
         mem = dict(state.get("memory") or {})
         it = state.get("intent") or {}
@@ -155,13 +154,12 @@ def build(policy: Policy | None = None, llm: LLM | None = None, weather=None, ch
                 if it.get(k):
                     mem[k] = it[k]
         if it.get("in_scope") and it.get("location"):
-            # keep the name even if lookup failed, so "try again" works;
-            # drop the old coordinates so we never reuse another city's.
             mem["location"] = it["location"]
             mem["country"] = it.get("country")
             mem["place"] = state.get("place")
         if state.get("snapshot"):
             mem["observed_at"] = state["snapshot"]["observed_at"]
+        mem["awaiting_location"] = state["outcome"] == "needs_location"
         entry = {"q": state["message"], "outcome": state["outcome"], "sops": state.get("matched", []),
                  "window": it.get("window"), "location": it.get("location")}
         return {"memory": mem, "log": [entry], "path": step(state, "remember")}

@@ -112,6 +112,10 @@ def parse(llm: LLM | None, policy: Policy, text: str, memory: dict) -> Intent:
         # user meant; the graph routes this to an honest "try again" reply.
         return Intent(parser="failed")
 
+    if memory.get("awaiting_location") and intent.location:
+        intent.in_scope = True
+        intent.follow_up = True
+
     # Session memory: a follow-up keeps whatever it didn't change.
     if intent.in_scope and not intent.location:
         intent.location = memory.get("location")
